@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  # Nosso banco de dados
+  postgres:
+    image: postgres:15-alpine
+    container_name: banco-eventos
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: eventos
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Nossa API em Go
+  api:
+    build: .
+    container_name: api-checkin
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres 
+      DB_USER: postgres
+      DB_PASSWORD: 1234
+      DB_NAME: eventos
+      DB_PORT: 5432
+
+volumes:
+  postgres_data:
