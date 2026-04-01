@@ -1,19 +1,14 @@
 🎟️ Event Check-in System (Go + PostgreSQL)
+
 Este projeto é um microsserviço de alta performance desenvolvido em Go (Golang) para o controle de acesso e check-in de convidados em eventos. O foco principal desta aplicação é garantir a integridade dos dados e evitar fraudes de entrada através de mecanismos de concorrência no banco de dados.
-
-🚀 O Problema: Race Condition em Eventos
 Em eventos de grande porte, múltiplas catracas ou fiscais podem tentar validar o mesmo QR Code simultaneamente. Sem a proteção adequada, uma Race Condition (Condição de Corrida) poderia permitir que o mesmo ingresso fosse utilizado mais de uma vez se as requisições chegassem no mesmo milissegundo.
-
-🛡️ A Solução: Row-Level Locking
 Esta API utiliza a estratégia de Pessimistic Locking (Row-Level Lock) através do comando SELECT ... FOR UPDATE do PostgreSQL.
-
 Quando uma requisição de check-in chega, o banco "trava" a linha daquele convidado específico.
-
 Qualquer outra tentativa de acesso ao mesmo registro fica em fila até que a primeira seja processada.
-
 Isso garante que o status do ingresso seja atualizado para CHECKED_IN de forma atômica, impedindo entradas duplicadas.
 
 🛠️ Tecnologias Utilizadas
+
 Linguagem: Go 1.21+ (utilizando Gin Gonic para roteamento).
 
 Banco de Dados: PostgreSQL 15.
@@ -25,6 +20,7 @@ Containerização: Docker & Docker Compose.
 Segurança: Variáveis de ambiente com godotenv.
 
 ⚙️ Como Executar o Projeto
+
 O projeto está totalmente dockerizado, o que facilita o setup em qualquer ambiente.
 
 Pré-requisitos
@@ -53,6 +49,7 @@ docker compose up -d --build
 A API estará disponível em http://localhost:8080.
 
 📌 Endpoints da API
+
 1. Criar Convidado
 POST /api/convidados
 Cadastra um novo convidado vinculado a um evento.
@@ -82,7 +79,10 @@ Response 409: Conflito (Ingresso já utilizado).
 
 Response 404: Ingresso não encontrado.
 
+
+
 📁 Estrutura do Projeto
+
 Plaintext
 ├── cmd/
 │   └── api/          # Ponto de entrada da aplicação
@@ -93,5 +93,8 @@ Plaintext
 ├── Dockerfile        # Build da imagem Alpine (com tzdata)
 ├── docker-compose.yml # Orquestração da API e PostgreSQL
 └── .env              # Variáveis sensíveis (não versionar)
+
+
+
 ✒️ Autor
-Mateus - Desenvolvedor de Software
+Mateus Tassoni - Desenvolvedor de Software
