@@ -5,9 +5,8 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o api-checkin ./cmd/api/main.go
 
-# --- ESTÁGIO FINAL ---
 FROM alpine:latest
-# ESTA LINHA ABAIXO É A CURA:
+
 RUN apk add --no-cache tzdata
 WORKDIR /root/
 COPY --from=builder /app/api-checkin .

@@ -24,7 +24,6 @@ func RealizarCheckIn(c *gin.Context) {
 	tx := database.DB.Begin()
 	var convidado models.Convidado
 
-	// Trava a linha no banco de dados para evitar dupla entrada
 	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("codigo_qr = ?", req.CodigoQR).
 		First(&convidado).Error
@@ -35,7 +34,6 @@ func RealizarCheckIn(c *gin.Context) {
 		return
 	}
 
-	// Se o cara já entrou, barra a entrada
 	if convidado.Status == "CHECKED_IN" {
 		tx.Rollback()
 		c.JSON(http.StatusConflict, gin.H{
@@ -45,7 +43,6 @@ func RealizarCheckIn(c *gin.Context) {
 		return
 	}
 
-	// Libera a entrada e atualiza o status
 	convidado.Status = "CHECKED_IN"
 
 	if err := tx.Save(&convidado).Error; err != nil {

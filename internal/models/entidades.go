@@ -2,7 +2,6 @@ package models
 
 import "gorm.io/gorm"
 
-// Tabela de Eventos
 type Evento struct {
 	gorm.Model
 	Nome       string      `json:"nome"`
@@ -11,7 +10,6 @@ type Evento struct {
 	Convidados []Convidado `json:"convidados,omitempty" gorm:"foreignKey:EventoID"`
 }
 
-// Tabela de Convidados (Ingressos)
 type Convidado struct {
 	gorm.Model
 	Nome     string `json:"nome"`

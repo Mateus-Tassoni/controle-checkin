@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CriarConvidado recebe o JSON e salva no banco
 func CriarConvidado(c *gin.Context) {
 	var convidado models.Convidado
 
@@ -25,7 +24,6 @@ func CriarConvidado(c *gin.Context) {
 	c.JSON(http.StatusCreated, convidado)
 }
 
-// ListarConvidados busca todo mundo que está no banco
 func ListarConvidados(c *gin.Context) {
 	var convidados []models.Convidado
 
