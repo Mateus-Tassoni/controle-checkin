@@ -1,100 +1,104 @@
-🎟️ Event Check-in System (Go + PostgreSQL)
+Event Check-in System (Go + PostgreSQL)
 
-Este projeto é um microsserviço de alta performance desenvolvido em Go (Golang) para o controle de acesso e check-in de convidados em eventos. O foco principal desta aplicação é garantir a integridade dos dados e evitar fraudes de entrada através de mecanismos de concorrência no banco de dados.
-Em eventos de grande porte, múltiplas catracas ou fiscais podem tentar validar o mesmo QR Code simultaneamente. Sem a proteção adequada, uma Race Condition (Condição de Corrida) poderia permitir que o mesmo ingresso fosse utilizado mais de uma vez se as requisições chegassem no mesmo milissegundo.
-Esta API utiliza a estratégia de Pessimistic Locking (Row-Level Lock) através do comando SELECT ... FOR UPDATE do PostgreSQL.
-Quando uma requisição de check-in chega, o banco "trava" a linha daquele convidado específico.
-Qualquer outra tentativa de acesso ao mesmo registro fica em fila até que a primeira seja processada.
-Isso garante que o status do ingresso seja atualizado para CHECKED_IN de forma atômica, impedindo entradas duplicadas.
+Esse projeto é um microsserviço feito em Go (Golang) para controle de acesso e check-in de convidados em eventos.
 
-🛠️ Tecnologias Utilizadas
+A ideia principal aqui é simples: evitar fraude e garantir que um ingresso não seja usado mais de uma vez — mesmo em cenários com várias catracas ou fiscais operando ao mesmo tempo.
 
-Linguagem: Go 1.21+ (utilizando Gin Gonic para roteamento).
+Como isso funciona?
 
-Banco de Dados: PostgreSQL 15.
+Em eventos grandes, pode acontecer de duas pessoas tentarem validar o mesmo QR Code praticamente ao mesmo tempo. Se o sistema não tratar isso direito, rola uma race condition e o ingresso pode acabar sendo aceito duas vezes.
 
-ORM: GORM (com migrações automáticas).
+Pra evitar isso, a API usa pessimistic locking (row-level lock) direto no PostgreSQL com SELECT ... FOR UPDATE.
 
-Containerização: Docker & Docker Compose.
+Na prática:
 
-Segurança: Variáveis de ambiente com godotenv.
+Quando chega uma requisição de check-in, o registro do convidado é “travado” no banco
+Qualquer outra tentativa de usar o mesmo QR fica esperando
+A primeira requisição finaliza e atualiza o status pra CHECKED_IN
+As próximas já recebem resposta de ingresso inválido/usado
 
-⚙️ Como Executar o Projeto
+Isso garante consistência e evita entrada duplicada.
 
-O projeto está totalmente dockerizado, o que facilita o setup em qualquer ambiente.
+Tecnologias
+Go 1.21+ (com Gin para as rotas)
+PostgreSQL 15
+GORM (ORM + migrações automáticas)
+Docker / Docker Compose
+godotenv (variáveis de ambiente)
+
+Como rodar o projeto
+
+Tá tudo dockerizado, então é bem tranquilo subir.
 
 Pré-requisitos
-Docker e Docker Compose instalados.
+Docker
+Docker Compose
+Passos
 
-Passo a Passo
-Clonar o repositório:
+1. Clonar o repositório
 
-Bash
 git clone https://github.com/SEU-USUARIO/controle-checkin.git
 cd controle-checkin
-Configurar Variáveis de Ambiente:
-Crie um arquivo .env na raiz do projeto:
 
-Snippet de código
+2. Criar o arquivo .env na raiz
+
 DB_HOST=postgres
 DB_USER=postgres
 DB_PASSWORD=1234
 DB_NAME=eventos
 DB_PORT=5432
 API_PORT=8080
-Subir os Containers:
 
-Bash
+3. Subir os containers
+
 docker compose up -d --build
-A API estará disponível em http://localhost:8080.
 
-📌 Endpoints da API
+A API vai estar disponível em:
 
-1. Criar Convidado
+http://localhost:8080
+  Endpoints
+  Criar convidado
+
 POST /api/convidados
-Cadastra um novo convidado vinculado a um evento.
 
-JSON
+Cadastra um convidado em um evento.
+
 {
   "nome": "Mateus Silva",
   "cpf": "12345678910",
   "evento_id": 1,
   "codigo_qr": "QR-999"
 }
-2. Listar Todos os Convidados
+
+Listar convidados
+
 GET /api/convidados
-Retorna a lista completa e o status de cada ingresso.
 
-3. Realizar Check-in (Catraca)
+Retorna todos os convidados com o status do ingresso.
+
+Check-in (catraca)
+
 POST /api/checkin
-Valida o QR Code e bloqueia novas tentativas.
 
-JSON
+Valida o QR Code.
+
 {
   "codigo_qr": "QR-999"
 }
-Response 200: Acesso liberado.
 
-Response 409: Conflito (Ingresso já utilizado).
+Respostas:
 
-Response 404: Ingresso não encontrado.
+200 → Acesso liberado
+409 → Ingresso já utilizado
+404 → Ingresso não encontrado
 
-
-
-📁 Estrutura do Projeto
-
-Plaintext
+Estrutura
 ├── cmd/
-│   └── api/          # Ponto de entrada da aplicação
+│   └── api/          # main da aplicação
 ├── internal/
-│   ├── database/     # Configuração e conexão com DB (com Retry Logic)
-│   ├── handlers/     # Controladores (Lógica de rota e resposta)
-│   └── models/       # Definição das structs (GORM Models)
-├── Dockerfile        # Build da imagem Alpine (com tzdata)
-├── docker-compose.yml # Orquestração da API e PostgreSQL
-└── .env              # Variáveis sensíveis (não versionar)
-
-
-
-✒️ Autor
-Mateus Tassoni - Desenvolvedor de Software
+│   ├── database/     # conexão com DB (com retry)
+│   ├── handlers/     # handlers das rotas
+│   └── models/       # structs / models do GORM
+├── Dockerfile
+├── docker-compose.yml
+└── .env              # variáveis (não versionar)
