@@ -36,7 +36,7 @@ func ConectarBanco() {
 			break
 		}
 
-		log.Printf("Tentativa %d: Banco ainda não respondeu (Postgres acordando...). Esperando 2s...", i)
+		log.Printf("Tentativa %d: Banco ainda não respondeu Esperando 2s...", i)
 		time.Sleep(2 * time.Second)
 	}
 
